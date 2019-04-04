@@ -51,14 +51,16 @@ def main():
         "--warning",
         dest="warning",
         help="Warning value. Could be fraction or whole number.",
-        type=float
+        type=float,
+        default=0.75
     )
     parser.add_argument(
         "-c",
         "--critical",
         dest="critical",
         help="Critical value. Could be fraction or whole number.",
-        type=float
+        type=float,
+        default=0.9
     )
     args = parser.parse_args()
     if float(args.warning) > float(args.critical):
