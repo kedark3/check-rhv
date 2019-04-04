@@ -3,6 +3,8 @@
 These are the functions to check RHV manager/hosts through the
 RHV API
 """
+from __future__ import division
+
 import sys
 
 
@@ -60,7 +62,47 @@ def check_storage_domain_status(system, **kwargs):
         print("Ok: all storage_domain(s) are in the OK state: {}".format(okay))
         sys.exit(0)
 
+
+def check_storage_domain_usage(system, warn=0.75, crit=0.9, **kwargs):
+    """ Check the usage of all the datastores on the host. """
+    warn = float(warn)
+    crit = float(crit)
+    okay, warning, critical, unknown, all = [], [], [], [], []
+    storage_domains = system.api.system_service().storage_domains_service().list()
+
+    for storage_domain in storage_domains:
+        used = storage_domain.used
+        available = storage_domain.available
+        status = used / (used + available)
+        if status < warn:
+            okay.append((storage_domain.name, status))
+        elif status > warn and status < crit:
+            warning.append((storage_domain.name, status))
+        elif status > crit:
+            critical.append((storage_domain.name, status))
+        else:
+            unknown.append((storage_domain.name, status))
+        all.append((storage_domain.name, status))
+
+    if critical:
+        print("Critical: the following storage_domain(s) definitely have an issue: {}\n "
+              "Status of all storage_domain is: {}".format(critical, all))
+        sys.exit(2)
+    elif warning:
+        print("Warning: the following storage_domain(s) may have an issue: {}\n "
+              "Status of all storage_domain is: {}".format(warning, all))
+        sys.exit(1)
+    elif unknown:
+        print("Unknown: the following storage_domain(s) are in an unknown state: {}\n"
+              "Status of all storage_domain is: {}".format(unknown, all))
+        sys.exit(3)
+    else:
+        print("Ok: all storage_domain(s) are in the OK state: {}".format(okay))
+        sys.exit(0)
+
+
 CHECKS = {
     "vm_count": check_vm_count,
     "storage_domain_status": check_storage_domain_status,
+    "storage_domain_usage": check_storage_domain_usage,
 }
