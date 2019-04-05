@@ -164,10 +164,47 @@ def check_hosts_status(system, **kwargs):
         print("Ok: all host(s) are in the OK state: {}".format(okay))
         sys.exit(0)
 
+
+def check_datacenters_status(system, **kwargs):
+    """ Check the status of all the hosts."""
+    okay, warning, critical, unknown, all = [], [], [], [], []
+    datacenters = system.api.system_service().data_centers_service().list()
+
+    for datacenter in datacenters:
+        status = datacenter.status
+        if status == types.DataCenterStatus.UP:
+            okay.append((datacenter.name, status))
+        elif (status == types.DataCenterStatus.MAINTENANCE or
+        status == types.DataCenterStatus.UNINITIALIZED):
+            warning.append((datacenter.name, status))
+        elif (status == types.DataCenterStatus.PROBLEMATIC or
+        status == types.DataCenterStatus.NOT_OPERATIONAL):
+            critical.append((datacenter.name, status))
+        else:
+            unknown.append((datacenter.name, status))
+        all.append((datacenter.name, status))
+
+    if critical:
+        print("Critical: the following datacenter(s) definitely have an issue: {}\n "
+              "Status of all datacenter is: {}".format(critical, all))
+        sys.exit(2)
+    elif warning:
+        print("Warning: the following datacenter(s) may have an issue: {}\n "
+              "Status of all datacenter is: {}".format(warning, all))
+        sys.exit(1)
+    elif unknown:
+        print("Unknown: the following datacenter(s) are in an unknown state: {}\n"
+              "Status of all datacenter is: {}".format(unknown, all))
+        sys.exit(3)
+    else:
+        print("Ok: all datacenter(s) are in the OK state: {}".format(okay))
+        sys.exit(0)
+
 CHECKS = {
     "vm_count": check_vm_count,
     "storage_domain_status": check_storage_domain_status,
     "storage_domain_usage": check_storage_domain_usage,
     "locked_disks_count": check_locked_disks,
     "hosts_status": check_hosts_status,
+    "datacenter_status": check_datacenters_status,
 }
