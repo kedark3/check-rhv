@@ -7,6 +7,8 @@ from __future__ import division
 
 import sys
 
+from ovirtsdk4 import types
+
 
 def check_vm_count(system, warn=20, crit=30, **kwargs):
     """ Check overall host status. """
@@ -35,12 +37,12 @@ def check_storage_domain_status(system, **kwargs):
     storage_domains = system.api.system_service().storage_domains_service().list()
 
     for storage_domain in storage_domains:
-        status = storage_domain.external_status.name
-        if status == "OK":
+        status = storage_domain.external_status
+        if status == types.ExternalStatus.OK:
             okay.append((storage_domain.name, status))
-        elif status == "WARNING":
+        elif status == types.ExternalStatus.WARNING:
             warning.append((storage_domain.name, status))
-        elif status == "FAILURE" or status == "ERROR":
+        elif status == types.ExternalStatus.FAILURE or status == types.ExternalStatus.ERROR:
             critical.append((storage_domain.name, status))
         else:
             unknown.append((storage_domain.name, status))
@@ -102,6 +104,7 @@ def check_storage_domain_usage(system, warn=0.75, crit=0.9, **kwargs):
 
 
 def check_locked_disks(system, warn=5, crit=10, **kwargs):
+    """Check the count of locked disks."""
     warn = int(warn)
     crit = int(crit)
     # following function call is not available in wrapanapi yet, need to merge PR#373
@@ -123,9 +126,48 @@ def check_locked_disks(system, warn=5, crit=10, **kwargs):
         print("Unknown: locked_disks count is unknown")
         sys.exit(3)
 
+
+def check_hosts_status(system, **kwargs):
+    """ Check the status of all the hosts."""
+    okay, warning, critical, unknown, all = [], [], [], [], []
+    hosts = system.api.system_service().hosts_service().list()
+
+    for host in hosts:
+        status = host.status
+        if status == types.HostStatus.UP:
+            okay.append((host.name, status))
+        elif (status == types.HostStatus.MAINTENANCE or status == types.HostStatus.UNASSIGNED or
+             status == types.HostStatus.REBOOT or status == types.HostStatus.CONNECTING or
+             status == types.HostStatus.INITIALIZING):
+            warning.append((host.name, status))
+        elif (status == types.HostStatus.ERROR or status == types.HostStatus.DOWN or
+             status == types.HostStatus.NON_OPERATIONAL or
+             status == types.HostStatus.NON_RESPONSIVE):
+            critical.append((host.name, status))
+        else:
+            unknown.append((host.name, status))
+        all.append((host.name, status))
+
+    if critical:
+        print("Critical: the following host(s) definitely have an issue: {}\n "
+              "Status of all host is: {}".format(critical, all))
+        sys.exit(2)
+    elif warning:
+        print("Warning: the following host(s) may have an issue: {}\n "
+              "Status of all host is: {}".format(warning, all))
+        sys.exit(1)
+    elif unknown:
+        print("Unknown: the following host(s) are in an unknown state: {}\n"
+              "Status of all host is: {}".format(unknown, all))
+        sys.exit(3)
+    else:
+        print("Ok: all host(s) are in the OK state: {}".format(okay))
+        sys.exit(0)
+
 CHECKS = {
     "vm_count": check_vm_count,
     "storage_domain_status": check_storage_domain_status,
     "storage_domain_usage": check_storage_domain_usage,
     "locked_disks_count": check_locked_disks,
+    "hosts_status": check_hosts_status,
 }
