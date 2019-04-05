@@ -101,8 +101,31 @@ def check_storage_domain_usage(system, warn=0.75, crit=0.9, **kwargs):
         sys.exit(0)
 
 
+def check_locked_disks(system, warn=5, crit=10, **kwargs):
+    warn = int(warn)
+    crit = int(crit)
+    # following function call is not available in wrapanapi yet, need to merge PR#373
+    locked_disks = len(system.list_disks(status='LOCKED'))
+    if locked_disks < warn:
+        print("Ok: locked_disks count is less than {}. locked_disks Count = {}"
+            .format(warn, locked_disks))
+        sys.exit(0)
+    elif locked_disks > warn and locked_disks < crit:
+        print("Warning: locked_disks count is greater than {}"
+            " & less than {}. locked_disks Count = {}"
+            .format(warn, crit, locked_disks))
+        sys.exit(1)
+    elif locked_disks > crit:
+        print("Critical: locked_disks count is greater than {}. locked_disks Count = {}"
+            .format(crit, locked_disks))
+        sys.exit(2)
+    else:
+        print("Unknown: locked_disks count is unknown")
+        sys.exit(3)
+
 CHECKS = {
     "vm_count": check_vm_count,
     "storage_domain_status": check_storage_domain_status,
     "storage_domain_usage": check_storage_domain_usage,
+    "locked_disks_count": check_locked_disks,
 }
