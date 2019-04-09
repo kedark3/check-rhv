@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding: utf-8
 """
 This script performs checks for Red Hat Virtualization(RHV) hosts/Manager through the
