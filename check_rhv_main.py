@@ -8,7 +8,7 @@ import argparse
 import sys
 
 from argparse import RawTextHelpFormatter
-from checks import CHECKS
+from rhv_checks import CHECKS
 from wrapanapi.systems.rhevm import RHEVMSystem
 
 
