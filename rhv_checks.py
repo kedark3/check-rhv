@@ -73,6 +73,9 @@ def check_storage_domain_usage(system, warn=0.75, crit=0.9, **kwargs):
     storage_domains = system.api.system_service().storage_domains_service().list()
 
     for storage_domain in storage_domains:
+        if storage_domain.type == types.StorageDomainType.IMAGE:
+            print("Skipping {} as it is of type IMAGE".format(storage_domain.name))
+            continue
         used = storage_domain.used
         available = storage_domain.available
         status = used / (used + available)
