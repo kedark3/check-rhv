@@ -203,6 +203,26 @@ def check_datacenters_status(system, **kwargs):
         print("Ok: all datacenter(s) are in the OK state: {}".format(okay))
         sys.exit(0)
 
+
+def check_storage_domain_attached_status(system, **kwargs):
+    """ Check the usage of all the datastores on the host. """
+    okay, critical, all = [], [], []
+    storage_domains_service = system.api.system_service().storage_domains_service()
+    all_sd = storage_domains_service.list()
+    data_centers_service = system.api.system_service().data_centers_service()
+    all_dc = data_centers_service.list()
+
+    for dc in all_dc:
+        print(dc.id)
+        dc_service = data_centers_service.data_center_service(dc.id)
+        attached_sds_service = dc_service.storage_domains_service()
+        for sd in all_sd:
+            attached_sds_service_sd_id = attached_sds_service.storage_domain_service(sd.id)
+            status = attached_sds_service_sd_id.get().status.value
+            if status == types.StorageDomainType.ACTIVE:
+                okay.append((sd.name, status))
+            all.append((sd.name, status))
+
 CHECKS = {
     "vm_count": check_vm_count,
     "storage_domain_status": check_storage_domain_status,
@@ -210,4 +230,5 @@ CHECKS = {
     "locked_disks_count": check_locked_disks,
     "hosts_status": check_hosts_status,
     "datacenter_status": check_datacenters_status,
+    "storage_domain_attached": check_storage_domain_attached_status,
 }
