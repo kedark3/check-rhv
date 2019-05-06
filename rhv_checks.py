@@ -74,7 +74,7 @@ def check_storage_domain_usage(system, warn=0.75, crit=0.9, **kwargs):
 
     for storage_domain in storage_domains:
         if storage_domain.type == types.StorageDomainType.IMAGE:
-            print("Skipping {} as it is of type IMAGE".format(storage_domain.name))
+            # Skipping storage_domain as it is of type IMAGE
             continue
         used = storage_domain.used
         available = storage_domain.available
@@ -216,6 +216,9 @@ def check_storage_domain_attached_status(system, **kwargs):
         dc_service = data_centers_service.data_center_service(dc.id)
         attached_sds_service = dc_service.storage_domains_service()
         for sd in all_sd:
+            if sd.type == types.StorageDomainType.IMAGE:
+               # Skipping sd as it is of type IMAGE
+               continue
             attached_sds_service_sd_id = attached_sds_service.storage_domain_service(sd.id)
             status = attached_sds_service_sd_id.get().status
             if status == types.StorageDomainStatus.ACTIVE:
