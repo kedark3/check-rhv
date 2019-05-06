@@ -213,24 +213,23 @@ def check_storage_domain_attached_status(system, **kwargs):
     all_dc = data_centers_service.list()
 
     for dc in all_dc:
-        print("Checking for Data Center: {}".format(dc.name-dc.id))
         dc_service = data_centers_service.data_center_service(dc.id)
         attached_sds_service = dc_service.storage_domains_service()
         for sd in all_sd:
             attached_sds_service_sd_id = attached_sds_service.storage_domain_service(sd.id)
-            status = attached_sds_service_sd_id.get().status.value
-            if status == types.StorageDomainType.ACTIVE:
-                okay.append((sd.name, status))
+            status = attached_sds_service_sd_id.get().status
+            if status == types.StorageDomainStatus.ACTIVE:
+                okay.append((sd.name, status.value))
             else:
-                critical.append((sd.name, status))
-            all.append((sd.name, status))
+                critical.append((sd.name, status.value))
+            all.append((sd.name, status.value))
 
     if critical:
-            print("Critical: the following Storage Domain(s) definitely have an issue: {}\n "
-              "Status of all Storage Domain(s) are: {}".format(critical, all))
+        print("Critical: the following Storage Domain(s) definitely have an issue: {}\n "
+            "Status of all Storage Domain(s) are: {}".format(critical, all))
         sys.exit(2)
     else:
-        print("Ok: all Storage Domain(s) are Attached to Data Center(s)): {}".format(okay))
+        print("Ok: all Storage Domain(s) are Attached to Data Center(s): {}".format(okay))
         sys.exit(0)
 
 CHECKS = {
