@@ -21,7 +21,7 @@ def main():
     parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter)
     parser.add_argument(
         "-R",
-        "--rhv-maanager-url",
+        "--rhv-manager-url",
         dest="rhvm",
         help="Hostname of RHV Manager",
         type=str
