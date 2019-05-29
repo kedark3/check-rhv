@@ -53,7 +53,6 @@ def main():
         dest="warning",
         help="Warning value. Could be fraction or whole number.",
         type=float,
-        default=0.75
     )
     parser.add_argument(
         "-c",
@@ -61,11 +60,16 @@ def main():
         dest="critical",
         help="Critical value. Could be fraction or whole number.",
         type=float,
-        default=0.9
     )
     args = parser.parse_args()
-    if float(args.warning) > float(args.critical):
+    if args.warning is not None and args.critical is not None and \
+            float(args.warning) > float(args.critical):
         print("Error: warning value can not be greater than critical value")
+        sys.exit(3)
+    elif (args.warning is None and args.critical is not None) or \
+            (args.warning is not None and args.critical is None):
+        print("Error: please provide both warning and critical values or use default values."
+              "You provided only {}".format("warning" if args.warning is not None else "critical"))
         sys.exit(3)
 
     # connect to the system
@@ -75,8 +79,13 @@ def main():
     if not measure_func:
         print("Error: measurement {} not understood".format(args.measurement))
         sys.exit(3)
+
     # run the measurement function
-    measure_func(system, warn=args.warning, crit=args.critical)
+    # if warning and critical values are not set, we need to use the default and not pass them
+    if args.warning is None and args.critical is None:
+        measure_func(system)
+    else:
+        measure_func(system, warn=args.warning, crit=args.critical)
 
 
 if __name__ == "__main__":
