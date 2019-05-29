@@ -19,12 +19,12 @@ def check_vm_count(system, warn=20, crit=30, **kwargs):
     if vm_count < warn:
         print("Ok: VM count is less than {}. VM Count = {}".format(warn, vm_count))
         sys.exit(0)
-    elif vm_count > warn and vm_count < crit:
+    elif warn < vm_count < crit:
         print("Warning: VM count is greater than {} & less than {}. VM Count = {}"
             .format(warn, crit, vm_count))
         sys.exit(1)
     elif vm_count > crit:
-        print("Critical: VM count is greate than crit. VM Count = {}".format(crit, vm_count))
+        print("Critical: VM count is greater than {}. VM Count = {}".format(crit, vm_count))
         sys.exit(2)
     else:
         print("Unknown: VM count is unknown")
@@ -217,8 +217,8 @@ def check_storage_domain_attached_status(system, **kwargs):
         attached_sds_service = dc_service.storage_domains_service()
         for sd in all_sd:
             if sd.type == types.StorageDomainType.IMAGE:
-               # Skipping sd as it is of type IMAGE
-               continue
+                # Skipping sd as it is of type IMAGE
+                continue
             attached_sds_service_sd_id = attached_sds_service.storage_domain_service(sd.id)
             status = attached_sds_service_sd_id.get().status
             if status == types.StorageDomainStatus.ACTIVE:
@@ -229,11 +229,12 @@ def check_storage_domain_attached_status(system, **kwargs):
 
     if critical:
         print("Critical: the following Storage Domain(s) definitely have an issue: {}\n "
-            "Status of all Storage Domain(s) are: {}".format(critical, all))
+              "Status of all Storage Domain(s) are: {}".format(critical, all))
         sys.exit(2)
     else:
         print("Ok: all Storage Domain(s) are Attached to Data Center(s): {}".format(okay))
         sys.exit(0)
+
 
 CHECKS = {
     "vm_count": check_vm_count,
