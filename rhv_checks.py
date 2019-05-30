@@ -19,7 +19,7 @@ def check_vm_count(system, warn=20, crit=30, **kwargs):
     if vm_count < warn:
         print("Ok: VM count is less than {}. VM Count = {}".format(warn, vm_count))
         sys.exit(0)
-    elif warn < vm_count < crit:
+    elif warn <= vm_count <= crit:
         print("Warning: VM count is greater than {} & less than {}. VM Count = {}"
             .format(warn, crit, vm_count))
         sys.exit(1)
@@ -69,7 +69,7 @@ def check_storage_domain_usage(system, warn=0.75, crit=0.9, **kwargs):
     """ Check the usage of all the datastores on the host. """
     warn = float(warn)
     crit = float(crit)
-    okay, warning, critical, unknown, all = [], [], [], [], []
+    okay, warning, critical, unknown, all_sd = [], [], [], [], []
     storage_domains = system.api.system_service().storage_domains_service().list()
 
     for storage_domain in storage_domains:
@@ -79,30 +79,32 @@ def check_storage_domain_usage(system, warn=0.75, crit=0.9, **kwargs):
         used = storage_domain.used
         available = storage_domain.available
         status = used / (used + available)
+        sds = system._get_storage_domain_service(storage_domain.name)
+        vms = len(sds.vms_service().list())
         if status < warn:
             okay.append((storage_domain.name, status))
-        elif status > warn and status < crit:
+        elif warn <= status <= crit:
             warning.append((storage_domain.name, status))
         elif status > crit:
             critical.append((storage_domain.name, status))
         else:
             unknown.append((storage_domain.name, status))
-        all.append((storage_domain.name, status))
+        all_sd.append((storage_domain.name, status, vms))
 
     if critical:
         print("Critical: the following storage_domain(s) definitely have an issue: {}\n "
-              "Status of all storage_domain is: {}".format(critical, all))
+              "Status of all storage_domain is: {}".format(critical, all_sd))
         sys.exit(2)
     elif warning:
         print("Warning: the following storage_domain(s) may have an issue: {}\n "
-              "Status of all storage_domain is: {}".format(warning, all))
+              "Status of all storage_domain is: {}".format(warning, all_sd))
         sys.exit(1)
     elif unknown:
         print("Unknown: the following storage_domain(s) are in an unknown state: {}\n"
-              "Status of all storage_domain is: {}".format(unknown, all))
+              "Status of all storage_domain is: {}".format(unknown, all_sd))
         sys.exit(3)
     else:
-        print("Ok: all storage_domain(s) are in the OK state: {}".format(okay))
+        print("Ok: all storage_domain(s) are in the OK state: {}".format(all_sd))
         sys.exit(0)
 
 
@@ -116,7 +118,7 @@ def check_locked_disks(system, warn=5, crit=10, **kwargs):
         print("Ok: locked_disks count is less than {}. locked_disks Count = {}"
             .format(warn, locked_disks))
         sys.exit(0)
-    elif locked_disks > warn and locked_disks < crit:
+    elif warn <= locked_disks <= crit:
         print("Warning: locked_disks count is greater than {}"
             " & less than {}. locked_disks Count = {}"
             .format(warn, crit, locked_disks))
@@ -236,6 +238,42 @@ def check_storage_domain_attached_status(system, **kwargs):
         sys.exit(0)
 
 
+def check_vms_distributed_hosts(system, warn=5, crit=10):
+    warn = int(warn)
+    crit = int(crit)
+    # get all the hosts
+    hosts = system.api.system_service().hosts_service().list()
+
+    # get number of VMs on each host
+    hosts_vms = dict()
+    for host in hosts:
+        hosts_vms[host.name] = host.summary.total
+
+    # check the difference between the lowest and the highest number
+    max_hosts_vms = max(hosts_vms.values())
+    min_hosts_vms = min(hosts_vms.values())
+
+    vms_host_diff = max_hosts_vms - min_hosts_vms
+
+    # determine ok, warning, critical, unknown state
+    if vms_host_diff < warn:
+        print("Ok: VMs difference on hosts is less than {}. VMs difference = {}."
+              "The distribution is {}".format(warn, vms_host_diff, hosts_vms))
+        sys.exit(0)
+    elif warn <= vms_host_diff <= crit:
+        print(
+            "Warning: VMs difference on hosts is more than {} & less than {}. VMs difference = {}."
+            "The distribution is {}".format(warn, crit, vms_host_diff, hosts_vms))
+        sys.exit(1)
+    elif vms_host_diff > crit:
+        print("Critical: VMs difference on hosts is more than {}. VMs difference = {}"
+              "The distribution is {}".format(crit, vms_host_diff, hosts_vms))
+        sys.exit(2)
+    else:
+        print("Unknown: VMs on hosts are unknown")
+        sys.exit(3)
+
+
 CHECKS = {
     "vm_count": check_vm_count,
     "storage_domain_status": check_storage_domain_status,
@@ -244,4 +282,5 @@ CHECKS = {
     "hosts_status": check_hosts_status,
     "datacenter_status": check_datacenters_status,
     "storage_domain_attached": check_storage_domain_attached_status,
+    "vms_distributed_hosts": check_vms_distributed_hosts,
 }
