@@ -54,12 +54,12 @@ def main():
         default=3
     )
     parser.add_argument(
-        "-i",
-        "--inventory",
-        dest="inventory",
-        help="Location of the ansible inventory",
+        "-d",
+        "--directory",
+        dest="directory",
+        help="Directory from which to run the command, usually where ansible config files reside.",
         type=str,
-        default="/etc/shinken/ansible/inventory",
+        default="/etc/shinken/ansible"
     )
     args = parser.parse_args()
 
@@ -77,14 +77,12 @@ def main():
         command = [
             "ansible",
             args.hostname,
-            "-i",
-            args.inventory,
             "-m",
             "service",
             "-a",
-            "'name={} state=restarted'".format(args.service)
+            "name={} state=restarted".format(args.service)
         ]
-        output = subprocess.check_output(command, universal_newlines=True)
+        output = subprocess.check_output(command, universal_newlines=True, cwd=args.directory)
         print(output)
 
 
