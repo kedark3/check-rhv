@@ -63,16 +63,13 @@ def main():
     )
     args = parser.parse_args()
 
-    if args.state != "CRITICAL":
-        # do nothing on non-critical states
-        return
-    elif args.type != "HARD":
-        # do nothing on non-hard critical states
-        return
-    elif args.attempt < args.max_attempts:
-        # do nothing if we are not at the max attempt number
-        return
-    else:
+    # we want to restart the service if it is in a critical SOFT state and has been checked
+    #   the max number of times, i.e. right before it notifies for human intervention OR
+    #   if the service somehow entered a HARD state
+    if (
+        (args.state == "CRITICAL" and args.type == "SOFT" and args.attempt >= args.max_attempts) or
+        (args.state == "CRITICAL" and args.type == "HARD")
+    ):
         # call ansible script to restart the service
         command = [
             "ansible",
@@ -84,6 +81,9 @@ def main():
         ]
         output = subprocess.check_output(command, universal_newlines=True, cwd=args.directory)
         print(output)
+    else:
+        # do nothing otherwise
+        return
 
 
 if __name__ == "__main__":
