@@ -5,17 +5,12 @@ This script performs checks for Red Hat Virtualization(RHV) hosts/Manager throug
 RHV API.
 """
 import argparse
-import logging
 import sys
 
 from argparse import RawTextHelpFormatter
-from logging.config import fileConfig
 from rhv_checks import CHECKS
+from rhv_logconf import logger
 from wrapanapi.systems.rhevm import RHEVMSystem
-
-# setup logger
-fileConfig("rhv_logconf/logging_config.ini")
-logger = logging.getLogger()
 
 
 def get_measurement(measurement):
@@ -95,11 +90,17 @@ def main():
             measure_func(system)
         else:
             measure_func(system, warn=args.warning, crit=args.critical)
-    except Exception:
-        logging.error(
+    except Exception as e:
+        logger.error(
             "Exception occurred during execution of %s",
             measure_func.__name__,
             exc_info=True
+        )
+        print(
+            "ERROR: exception '{}' occurred during execution of '{}', check logs for trace".format(
+                e,
+                measure_func.__name__
+            )
         )
         sys.exit(3)
 
