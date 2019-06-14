@@ -3,5 +3,5 @@ import logging
 from logging.config import fileConfig
 
 # setup logger
-fileConfig("rhv_logconf/logging_config.ini")
+fileConfig("/var/lib/shinken/libexec/rhv_logconf/logging_config.ini")
 logger = logging.getLogger()
