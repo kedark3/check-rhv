@@ -8,6 +8,7 @@ from __future__ import division
 import sys
 
 from ovirtsdk4 import types
+from rhv_logconf import logger
 
 
 def check_vm_count(system, warn=20, crit=30, **kwargs):
@@ -17,17 +18,25 @@ def check_vm_count(system, warn=20, crit=30, **kwargs):
     vm_count = len(system.list_vms())
     # determine ok, warning, critical, unknown state
     if vm_count < warn:
-        print("Ok: VM count is less than {}. VM Count = {}".format(warn, vm_count))
+        msg = ("Ok: VM count is less than {}. VM Count = {}".format(warn, vm_count))
+        logger.info(msg)
+        print(msg)
         sys.exit(0)
     elif warn <= vm_count <= crit:
-        print("Warning: VM count is greater than {} & less than {}. VM Count = {}"
+        msg = ("Warning: VM count is greater than {} & less than {}. VM Count = {}"
             .format(warn, crit, vm_count))
+        logger.warning(msg)
+        print(msg)
         sys.exit(1)
     elif vm_count > crit:
-        print("Critical: VM count is greater than {}. VM Count = {}".format(crit, vm_count))
+        msg = ("Critical: VM count is greater than {}. VM Count = {}".format(crit, vm_count))
+        logger.error(msg)
+        print(msg)
         sys.exit(2)
     else:
-        print("Unknown: VM count is unknown")
+        msg = ("Unknown: VM count is unknown")
+        logger.info(msg)
+        print(msg)
         sys.exit(3)
 
 
@@ -49,19 +58,27 @@ def check_storage_domain_status(system, **kwargs):
         all.append((storage_domain.name, status))
 
     if critical:
-        print("Critical: the following storage_domain(s) definitely have an issue: {}\n "
-              "Status of all storage_domain is: {}".format(critical, all))
+        msg = ("Critical: the following storage_domain(s) definitely have an issue: {}\n "
+               "Status of all storage_domain is: {}".format(critical, all))
+        logger.error(msg)
+        print(msg)
         sys.exit(2)
     elif warning:
-        print("Warning: the following storage_domain(s) may have an issue: {}\n "
-              "Status of all storage_domain is: {}".format(warning, all))
+        msg = ("Warning: the following storage_domain(s) may have an issue: {}\n "
+               "Status of all storage_domain is: {}".format(warning, all))
+        logger.warning(msg)
+        print(msg)
         sys.exit(1)
     elif unknown:
-        print("Unknown: the following storage_domain(s) are in an unknown state: {}\n"
-              "Status of all storage_domain is: {}".format(unknown, all))
+        msg = ("Unknown: the following storage_domain(s) are in an unknown state: {}\n"
+               "Status of all storage_domain is: {}".format(unknown, all))
+        logger.info(msg)
+        print(msg)
         sys.exit(3)
     else:
-        print("Ok: all storage_domain(s) are in the OK state: {}".format(okay))
+        msg = ("Ok: all storage_domain(s) are in the OK state: {}".format(okay))
+        logger.info(msg)
+        print(msg)
         sys.exit(0)
 
 
@@ -92,19 +109,27 @@ def check_storage_domain_usage(system, warn=0.75, crit=0.9, **kwargs):
         all_sd.append((storage_domain.name, status, vms))
 
     if critical:
-        print("Critical: the following storage_domain(s) definitely have an issue: {}\n "
-              "Status of all storage_domain is: {}".format(critical, all_sd))
+        msg = ("Critical: the following storage_domain(s) definitely have an issue: {}\n "
+               "Status of all storage_domain is: {}".format(critical, all_sd))
+        logger.error(msg)
+        print(msg)
         sys.exit(2)
     elif warning:
-        print("Warning: the following storage_domain(s) may have an issue: {}\n "
-              "Status of all storage_domain is: {}".format(warning, all_sd))
+        msg = ("Warning: the following storage_domain(s) may have an issue: {}\n "
+               "Status of all storage_domain is: {}".format(warning, all_sd))
+        logger.warning(msg)
+        print(msg)
         sys.exit(1)
     elif unknown:
-        print("Unknown: the following storage_domain(s) are in an unknown state: {}\n"
-              "Status of all storage_domain is: {}".format(unknown, all_sd))
+        msg = ("Unknown: the following storage_domain(s) are in an unknown state: {}\n"
+               "Status of all storage_domain is: {}".format(unknown, all_sd))
+        logger.info(msg)
+        print(msg)
         sys.exit(3)
     else:
-        print("Ok: all storage_domain(s) are in the OK state: {}".format(all_sd))
+        msg = ("Ok: all storage_domain(s) are in the OK state: {}".format(all_sd))
+        logger.info(msg)
+        print(msg)
         sys.exit(0)
 
 
@@ -115,20 +140,31 @@ def check_locked_disks(system, warn=5, crit=10, **kwargs):
     # following function call is not available in wrapanapi yet, need to merge PR#373
     locked_disks = len(system.list_disks(status='LOCKED'))
     if locked_disks < warn:
-        print("Ok: locked_disks count is less than {}. locked_disks Count = {}"
-            .format(warn, locked_disks))
+        msg = ("Ok: locked_disks count is less than {}. locked_disks Count = {}"
+               .format(warn, locked_disks))
+        logger.info(msg)
+        print(msg)
         sys.exit(0)
     elif warn <= locked_disks <= crit:
-        print("Warning: locked_disks count is greater than {}"
-            " & less than {}. locked_disks Count = {}"
+        msg = ("Warning: locked_disks count is greater than {}"
+              " & less than {}. locked_disks Count = {}"
             .format(warn, crit, locked_disks))
+        logger.warning(msg)
+        print(msg)
         sys.exit(1)
     elif locked_disks > crit:
-        print("Critical: locked_disks count is greater than {}. locked_disks Count = {}"
-            .format(crit, locked_disks))
+        msg = (
+            "Critical: locked_disks count is greater than {}. locked_disks Count = {}".format(
+                crit, locked_disks
+            )
+        )
+        logger.error(msg)
+        print(msg)
         sys.exit(2)
     else:
-        print("Unknown: locked_disks count is unknown")
+        msg = ("Unknown: locked_disks count is unknown")
+        logger.info(msg)
+        print(msg)
         sys.exit(3)
 
 
@@ -154,19 +190,27 @@ def check_hosts_status(system, **kwargs):
         all.append((host.name, status))
 
     if critical:
-        print("Critical: the following host(s) definitely have an issue: {}\n "
-              "Status of all host is: {}".format(critical, all))
+        msg = ("Critical: the following host(s) definitely have an issue: {}\n "
+               "Status of all host is: {}".format(critical, all))
+        logger.error(msg)
+        print(msg)
         sys.exit(2)
     elif warning:
-        print("Warning: the following host(s) may have an issue: {}\n "
-              "Status of all host is: {}".format(warning, all))
+        msg = ("Warning: the following host(s) may have an issue: {}\n "
+               "Status of all host is: {}".format(warning, all))
+        logger.warning(msg)
+        print(msg)
         sys.exit(1)
     elif unknown:
-        print("Unknown: the following host(s) are in an unknown state: {}\n"
-              "Status of all host is: {}".format(unknown, all))
+        msg = ("Unknown: the following host(s) are in an unknown state: {}\n"
+               "Status of all host is: {}".format(unknown, all))
+        logger.info(msg)
+        print(msg)
         sys.exit(3)
     else:
-        print("Ok: all host(s) are in the OK state: {}".format(okay))
+        msg = ("Ok: all host(s) are in the OK state: {}".format(okay))
+        logger.info(msg)
+        print(msg)
         sys.exit(0)
 
 
@@ -190,19 +234,27 @@ def check_datacenters_status(system, **kwargs):
         all.append((datacenter.name, status))
 
     if critical:
-        print("Critical: the following datacenter(s) definitely have an issue: {}\n "
-              "Status of all datacenter is: {}".format(critical, all))
+        msg = ("Critical: the following datacenter(s) definitely have an issue: {}\n "
+               "Status of all datacenter is: {}".format(critical, all))
+        logger.error(msg)
+        print(msg)
         sys.exit(2)
     elif warning:
-        print("Warning: the following datacenter(s) may have an issue: {}\n "
-              "Status of all datacenter is: {}".format(warning, all))
+        msg = ("Warning: the following datacenter(s) may have an issue: {}\n "
+               "Status of all datacenter is: {}".format(warning, all))
+        logger.warning(msg)
+        print(msg)
         sys.exit(1)
     elif unknown:
-        print("Unknown: the following datacenter(s) are in an unknown state: {}\n"
-              "Status of all datacenter is: {}".format(unknown, all))
+        msg = ("Unknown: the following datacenter(s) are in an unknown state: {}\n"
+               "Status of all datacenter is: {}".format(unknown, all))
+        logger.info(msg)
+        print(msg)
         sys.exit(3)
     else:
-        print("Ok: all datacenter(s) are in the OK state: {}".format(okay))
+        msg = ("Ok: all datacenter(s) are in the OK state: {}".format(okay))
+        logger.info(msg)
+        print(msg)
         sys.exit(0)
 
 
@@ -230,11 +282,15 @@ def check_storage_domain_attached_status(system, **kwargs):
             all.append((sd.name, status.value))
 
     if critical:
-        print("Critical: the following Storage Domain(s) definitely have an issue: {}\n "
-              "Status of all Storage Domain(s) are: {}".format(critical, all))
+        msg = ("Critical: the following Storage Domain(s) definitely have an issue: {}\n "
+               "Status of all Storage Domain(s) are: {}".format(critical, all))
+        logger.error(msg)
+        print(msg)
         sys.exit(2)
     else:
-        print("Ok: all Storage Domain(s) are Attached to Data Center(s): {}".format(okay))
+        msg = ("Ok: all Storage Domain(s) are Attached to Data Center(s): {}".format(okay))
+        logger.info(msg)
+        print(msg)
         sys.exit(0)
 
 
@@ -257,20 +313,28 @@ def check_vms_distributed_hosts(system, warn=5, crit=10):
 
     # determine ok, warning, critical, unknown state
     if vms_host_diff < warn:
-        print("Ok: VMs difference on hosts is less than {}. VMs difference = {}."
+        msg = ("Ok: VMs difference on hosts is less than {}. VMs difference = {}."
               "The distribution is {}".format(warn, vms_host_diff, hosts_vms))
+        logger.info(msg)
+        print(msg)
         sys.exit(0)
     elif warn <= vms_host_diff <= crit:
-        print(
+        msg = (
             "Warning: VMs difference on hosts is more than {} & less than {}. VMs difference = {}."
             "The distribution is {}".format(warn, crit, vms_host_diff, hosts_vms))
+        logger.warning(msg)
+        print(msg)
         sys.exit(1)
     elif vms_host_diff > crit:
-        print("Critical: VMs difference on hosts is more than {}. VMs difference = {}"
+        msg = ("Critical: VMs difference on hosts is more than {}. VMs difference = {}"
               "The distribution is {}".format(crit, vms_host_diff, hosts_vms))
+        logger.error(msg)
+        print(msg)
         sys.exit(2)
     else:
-        print("Unknown: VMs on hosts are unknown")
+        msg = ("Unknown: VMs on hosts are unknown")
+        logger.info(msg)
+        print(msg)
         sys.exit(3)
 
 
