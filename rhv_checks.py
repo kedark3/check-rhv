@@ -9,6 +9,9 @@ import sys
 
 from ovirtsdk4 import types
 
+from utils import is_service_in_status
+from utils import ssh_client
+
 
 def check_vm_count(system, warn=20, crit=30, **kwargs):
     """ Check overall host status. """
@@ -301,6 +304,7 @@ def check_storage_domain_attached_status(system, **kwargs):
 
 
 def check_vms_distributed_hosts(system, warn=5, crit=10, **kwargs):
+    """VMs are evenly distributed across the hosts"""
     logger = kwargs["logger"]
     warn = int(warn)
     crit = int(crit)
@@ -392,6 +396,44 @@ def check_hosted_engine_status(system, **kwargs):
         sys.exit(0)
 
 
+def check_services_status(system, **kwargs):
+    """Check to see if service are in the desired state"""
+    logger = kwargs["logger"]
+    kwargs.pop("logger", None)
+    hosts = system.api.system_service().hosts_service()
+    hosts_agents = dict()
+    hosts_status = dict()
+
+    for host in hosts.list():
+        host_service = hosts.host_service(host.id)
+        ssh = ssh_client(host_service, username="root", password=system.api._password)
+        with ssh:
+            for service_name, status in kwargs.iteritems():
+                service_status = is_service_in_status(ssh, service_name, status)
+                try:
+                    hosts_agents[host.name].update({service_name: service_status})
+                except KeyError:
+                    hosts_agents[host.name] = {service_name: service_status}
+
+        hosts_status[host.name] = all(hosts_agents[host.name].values())
+
+    overall_status = all(hosts_status.values())
+
+    # TODO: add the exact desired state in message instead of True/False
+    if overall_status:  # all true, everything is running
+        msg = ("Ok: all services {} are in the desired state on all hosts".format(kwargs.keys()))
+        logger.info(msg)
+        print(msg)
+        sys.exit(0)
+    else:
+        trouble_hosts = [host for host, status in hosts_status.iteritems() if not status]
+        msg = ("Critical: These hosts don't have all agents in the desired state: {}."
+               "Overall status is {}".format(trouble_hosts, hosts_agents))
+        logger.info(msg)
+        print(msg)
+        sys.exit(2)
+
+
 CHECKS = {
     "vm_count": check_vm_count,
     "storage_domain_status": check_storage_domain_status,
@@ -402,4 +444,5 @@ CHECKS = {
     "storage_domain_attached": check_storage_domain_attached_status,
     "vms_distributed_hosts": check_vms_distributed_hosts,
     "hosted_engine_status": check_hosted_engine_status,
-}
+    "services_status": check_services_status,
+    }

@@ -3,6 +3,7 @@ import os
 
 from logging.config import fileConfig
 
+
 # setup logger
 def get_logger(local):
     if local:
