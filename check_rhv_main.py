@@ -9,7 +9,7 @@ import sys
 
 from argparse import RawTextHelpFormatter
 from rhv_checks import CHECKS
-from rhv_logconf import logger
+from rhv_logconf import get_logger
 from wrapanapi.systems.rhevm import RHEVMSystem
 
 
@@ -61,7 +61,18 @@ def main():
         help="Critical value. Could be fraction or whole number.",
         type=float,
     )
+    parser.add_argument(
+        "-l",
+        "--local",
+        dest="local",
+        help="Use this field when testing locally",
+        action="store_true",
+        default=False
+    )
     args = parser.parse_args()
+    # set logger
+    logger = get_logger(args.local)
+
     if args.warning is not None and args.critical is not None and \
             float(args.warning) > float(args.critical):
         logger.error("Error: warning value can not be greater than critical value")
@@ -87,9 +98,9 @@ def main():
     try:
         logger.info("Calling check %s", measure_func.__name__)
         if args.warning is None and args.critical is None:
-            measure_func(system)
+            measure_func(system, logger=logger)
         else:
-            measure_func(system, warn=args.warning, crit=args.critical)
+            measure_func(system, warn=args.warning, crit=args.critical, logger=logger)
     except Exception as e:
         logger.error(
             "Exception occurred during execution of %s",
