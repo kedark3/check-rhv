@@ -8,11 +8,11 @@ from __future__ import division
 import sys
 
 from ovirtsdk4 import types
-from rhv_logconf import logger
 
 
 def check_vm_count(system, warn=20, crit=30, **kwargs):
     """ Check overall host status. """
+    logger = kwargs["logger"]
     warn = int(warn)
     crit = int(crit)
     vm_count = len(system.list_vms())
@@ -42,6 +42,7 @@ def check_vm_count(system, warn=20, crit=30, **kwargs):
 
 def check_storage_domain_status(system, **kwargs):
     """ Check the usage of all the datastores on the host. """
+    logger = kwargs["logger"]
     okay, warning, critical, unknown, all = [], [], [], [], []
     storage_domains = system.api.system_service().storage_domains_service().list()
 
@@ -84,6 +85,7 @@ def check_storage_domain_status(system, **kwargs):
 
 def check_storage_domain_usage(system, warn=0.75, crit=0.9, **kwargs):
     """ Check the usage of all the datastores on the host. """
+    logger = kwargs["logger"]
     warn = float(warn)
     crit = float(crit)
     okay, warning, critical, unknown, all_sd = [], [], [], [], []
@@ -135,6 +137,7 @@ def check_storage_domain_usage(system, warn=0.75, crit=0.9, **kwargs):
 
 def check_locked_disks(system, warn=5, crit=10, **kwargs):
     """Check the count of locked disks."""
+    logger = kwargs["logger"]
     warn = int(warn)
     crit = int(crit)
     # following function call is not available in wrapanapi yet, need to merge PR#373
@@ -170,6 +173,7 @@ def check_locked_disks(system, warn=5, crit=10, **kwargs):
 
 def check_hosts_status(system, **kwargs):
     """ Check the status of all the hosts."""
+    logger = kwargs["logger"]
     okay, warning, critical, unknown, all = [], [], [], [], []
     hosts = system.api.system_service().hosts_service().list()
 
@@ -216,6 +220,7 @@ def check_hosts_status(system, **kwargs):
 
 def check_datacenters_status(system, **kwargs):
     """ Check the status of all the hosts."""
+    logger = kwargs["logger"]
     okay, warning, critical, unknown, all = [], [], [], [], []
     datacenters = system.api.system_service().data_centers_service().list()
 
@@ -260,6 +265,7 @@ def check_datacenters_status(system, **kwargs):
 
 def check_storage_domain_attached_status(system, **kwargs):
     """ Check the usage of all the datastores on the host. """
+    logger = kwargs["logger"]
     okay, critical, all = [], [], []
     storage_domains_service = system.api.system_service().storage_domains_service()
     all_sd = storage_domains_service.list()
@@ -294,7 +300,8 @@ def check_storage_domain_attached_status(system, **kwargs):
         sys.exit(0)
 
 
-def check_vms_distributed_hosts(system, warn=5, crit=10):
+def check_vms_distributed_hosts(system, warn=5, crit=10, **kwargs):
+    logger = kwargs["logger"]
     warn = int(warn)
     crit = int(crit)
     # get all the hosts
