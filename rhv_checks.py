@@ -43,7 +43,7 @@ def check_vm_count(system, warn=20, crit=30, **kwargs):
 def check_storage_domain_status(system, **kwargs):
     """ Check the usage of all the datastores on the host. """
     logger = kwargs["logger"]
-    okay, warning, critical, unknown, all = [], [], [], [], []
+    okay, warning, critical, unknown, all_items = [], [], [], [], []
     storage_domains = system.api.system_service().storage_domains_service().list()
 
     for storage_domain in storage_domains:
@@ -56,23 +56,23 @@ def check_storage_domain_status(system, **kwargs):
             critical.append((storage_domain.name, status))
         else:
             unknown.append((storage_domain.name, status))
-        all.append((storage_domain.name, status))
+        all_items.append((storage_domain.name, status))
 
     if critical:
         msg = ("Critical: the following storage_domain(s) definitely have an issue: {}\n "
-               "Status of all storage_domain is: {}".format(critical, all))
+               "Status of all storage_domain is: {}".format(critical, all_items))
         logger.error(msg)
         print(msg)
         sys.exit(2)
     elif warning:
         msg = ("Warning: the following storage_domain(s) may have an issue: {}\n "
-               "Status of all storage_domain is: {}".format(warning, all))
+               "Status of all storage_domain is: {}".format(warning, all_items))
         logger.warning(msg)
         print(msg)
         sys.exit(1)
     elif unknown:
         msg = ("Unknown: the following storage_domain(s) are in an unknown state: {}\n"
-               "Status of all storage_domain is: {}".format(unknown, all))
+               "Status of all storage_domain is: {}".format(unknown, all_items))
         logger.info(msg)
         print(msg)
         sys.exit(3)
@@ -88,7 +88,7 @@ def check_storage_domain_usage(system, warn=0.75, crit=0.9, **kwargs):
     logger = kwargs["logger"]
     warn = float(warn)
     crit = float(crit)
-    okay, warning, critical, unknown, all_sd = [], [], [], [], []
+    okay, warning, critical, unknown, all_items = [], [], [], [], []
     storage_domains = system.api.system_service().storage_domains_service().list()
 
     for storage_domain in storage_domains:
@@ -108,28 +108,28 @@ def check_storage_domain_usage(system, warn=0.75, crit=0.9, **kwargs):
             critical.append((storage_domain.name, status))
         else:
             unknown.append((storage_domain.name, status))
-        all_sd.append((storage_domain.name, status, vms))
+        all_items.append((storage_domain.name, status, vms))
 
     if critical:
         msg = ("Critical: the following storage_domain(s) definitely have an issue: {}\n "
-               "Status of all storage_domain is: {}".format(critical, all_sd))
+               "Status of all storage_domain is: {}".format(critical, all_items))
         logger.error(msg)
         print(msg)
         sys.exit(2)
     elif warning:
         msg = ("Warning: the following storage_domain(s) may have an issue: {}\n "
-               "Status of all storage_domain is: {}".format(warning, all_sd))
+               "Status of all storage_domain is: {}".format(warning, all_items))
         logger.warning(msg)
         print(msg)
         sys.exit(1)
     elif unknown:
         msg = ("Unknown: the following storage_domain(s) are in an unknown state: {}\n"
-               "Status of all storage_domain is: {}".format(unknown, all_sd))
+               "Status of all storage_domain is: {}".format(unknown, all_items))
         logger.info(msg)
         print(msg)
         sys.exit(3)
     else:
-        msg = ("Ok: all storage_domain(s) are in the OK state: {}".format(all_sd))
+        msg = ("Ok: all storage_domain(s) are in the OK state: {}".format(all_items))
         logger.info(msg)
         print(msg)
         sys.exit(0)
@@ -174,7 +174,7 @@ def check_locked_disks(system, warn=5, crit=10, **kwargs):
 def check_hosts_status(system, **kwargs):
     """ Check the status of all the hosts."""
     logger = kwargs["logger"]
-    okay, warning, critical, unknown, all = [], [], [], [], []
+    okay, warning, critical, unknown, all_items = [], [], [], [], []
     hosts = system.api.system_service().hosts_service().list()
 
     for host in hosts:
@@ -191,23 +191,23 @@ def check_hosts_status(system, **kwargs):
             critical.append((host.name, status))
         else:
             unknown.append((host.name, status))
-        all.append((host.name, status))
+        all_items.append((host.name, status))
 
     if critical:
         msg = ("Critical: the following host(s) definitely have an issue: {}\n "
-               "Status of all host is: {}".format(critical, all))
+               "Status of all host is: {}".format(critical, all_items))
         logger.error(msg)
         print(msg)
         sys.exit(2)
     elif warning:
         msg = ("Warning: the following host(s) may have an issue: {}\n "
-               "Status of all host is: {}".format(warning, all))
+               "Status of all host is: {}".format(warning, all_items))
         logger.warning(msg)
         print(msg)
         sys.exit(1)
     elif unknown:
         msg = ("Unknown: the following host(s) are in an unknown state: {}\n"
-               "Status of all host is: {}".format(unknown, all))
+               "Status of all host is: {}".format(unknown, all_items))
         logger.info(msg)
         print(msg)
         sys.exit(3)
@@ -221,7 +221,7 @@ def check_hosts_status(system, **kwargs):
 def check_datacenters_status(system, **kwargs):
     """ Check the status of all the hosts."""
     logger = kwargs["logger"]
-    okay, warning, critical, unknown, all = [], [], [], [], []
+    okay, warning, critical, unknown, all_items = [], [], [], [], []
     datacenters = system.api.system_service().data_centers_service().list()
 
     for datacenter in datacenters:
@@ -236,23 +236,23 @@ def check_datacenters_status(system, **kwargs):
             critical.append((datacenter.name, status))
         else:
             unknown.append((datacenter.name, status))
-        all.append((datacenter.name, status))
+        all_items.append((datacenter.name, status))
 
     if critical:
         msg = ("Critical: the following datacenter(s) definitely have an issue: {}\n "
-               "Status of all datacenter is: {}".format(critical, all))
+               "Status of all datacenter is: {}".format(critical, all_items))
         logger.error(msg)
         print(msg)
         sys.exit(2)
     elif warning:
         msg = ("Warning: the following datacenter(s) may have an issue: {}\n "
-               "Status of all datacenter is: {}".format(warning, all))
+               "Status of all datacenter is: {}".format(warning, all_items))
         logger.warning(msg)
         print(msg)
         sys.exit(1)
     elif unknown:
         msg = ("Unknown: the following datacenter(s) are in an unknown state: {}\n"
-               "Status of all datacenter is: {}".format(unknown, all))
+               "Status of all datacenter is: {}".format(unknown, all_items))
         logger.info(msg)
         print(msg)
         sys.exit(3)
@@ -266,16 +266,16 @@ def check_datacenters_status(system, **kwargs):
 def check_storage_domain_attached_status(system, **kwargs):
     """ Check the usage of all the datastores on the host. """
     logger = kwargs["logger"]
-    okay, critical, all = [], [], []
+    okay, critical, all_items = [], [], []
     storage_domains_service = system.api.system_service().storage_domains_service()
-    all_sd = storage_domains_service.list()
+    all_items = storage_domains_service.list()
     data_centers_service = system.api.system_service().data_centers_service()
     all_dc = data_centers_service.list()
 
     for dc in all_dc:
         dc_service = data_centers_service.data_center_service(dc.id)
         attached_sds_service = dc_service.storage_domains_service()
-        for sd in all_sd:
+        for sd in all_items:
             if sd.type == types.StorageDomainType.IMAGE:
                 # Skipping sd as it is of type IMAGE
                 continue
@@ -285,11 +285,11 @@ def check_storage_domain_attached_status(system, **kwargs):
                 okay.append((sd.name, status.value))
             else:
                 critical.append((sd.name, status.value))
-            all.append((sd.name, status.value))
+            all_items.append((sd.name, status.value))
 
     if critical:
         msg = ("Critical: the following Storage Domain(s) definitely have an issue: {}\n "
-               "Status of all Storage Domain(s) are: {}".format(critical, all))
+               "Status of all Storage Domain(s) are: {}".format(critical, all_items))
         logger.error(msg)
         print(msg)
         sys.exit(2)
@@ -345,6 +345,53 @@ def check_vms_distributed_hosts(system, warn=5, crit=10, **kwargs):
         sys.exit(3)
 
 
+def check_hosted_engine_status(system, **kwargs):
+    """ Check the status of all the host's Hosted Engine Status."""
+    logger = kwargs["logger"]
+    okay, critical, warning, all_items = [], [], [], []
+    # Get all the hosts with details.
+    hosts = system.api.system_service().hosts_service().list(all_content=True)
+
+    for host in hosts:
+        host_info = {
+            "Configured": host.hosted_engine.configured,
+            "Active": host.hosted_engine.active,
+            "local_maintenance": host.hosted_engine.local_maintenance,
+            "global_maintenance": host.hosted_engine.global_maintenance,
+            "Score": host.hosted_engine.score,
+        }
+        engine_value = all((host_info["Active"], host_info["Configured"]))
+        maintenance_value = any(
+            (host_info["global_maintenance"], host_info["local_maintenance"])
+        )
+        if not engine_value or maintenance_value:
+            critical.append((host.name, host_info))
+        else:
+            okay.append((host.name, host_info))
+        # Checking hosted engine non-zero scrore.
+        if host_info["Score"] < 3400:
+            warning.append((host.name, host_info["Score"]))
+        all_items.append((host.name, host_info))
+
+    if critical:
+        msg = ("Critical: The following host's hosted-engine status has an issue: {state}\n "
+            "Status of all host is: {all_items}".format(state=critical, all_items=all_items))
+        logger.error(msg)
+        print(msg)
+        sys.exit(2)
+    elif warning:
+        msg = ("Warning: The following host's hosted-engine score reported below 3400.\n "
+            "Actual scrore of host is {}".format(warning))
+        logger.warning(msg)
+        print(msg)
+        sys.exit(1)
+    else:
+        msg = ("Ok: all host(s) hosted-engine status is in the OK state: {}".format(okay))
+        logger.info(msg)
+        print(msg)
+        sys.exit(0)
+
+
 CHECKS = {
     "vm_count": check_vm_count,
     "storage_domain_status": check_storage_domain_status,
@@ -354,4 +401,5 @@ CHECKS = {
     "datacenter_status": check_datacenters_status,
     "storage_domain_attached": check_storage_domain_attached_status,
     "vms_distributed_hosts": check_vms_distributed_hosts,
+    "hosted_engine_status": check_hosted_engine_status,
 }
