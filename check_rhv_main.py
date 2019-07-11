@@ -5,6 +5,7 @@ This script performs checks for Red Hat Virtualization(RHV) hosts/Manager throug
 RHV API.
 """
 import argparse
+import json
 import sys
 
 from argparse import RawTextHelpFormatter
@@ -68,6 +69,13 @@ def main():
         help="Use this field when testing locally",
         action="store_true",
         default=False
+        )
+    parser.add_argument(
+        "-s",
+        "--services",
+        dest="services",
+        help="Dictionary of services and their expected statuses",
+        type=str,
     )
     args = parser.parse_args()
     # set logger
@@ -97,8 +105,10 @@ def main():
     # if warning and critical values are not set, we need to use the default and not pass them
     try:
         logger.info("Calling check %s", measure_func.__name__)
-        if args.warning is None and args.critical is None:
+        if args.warning is None and args.critical is None and args.services is None:
             measure_func(system, logger=logger)
+        elif args.warning is None and args.critical is None and args.services is not None:
+            measure_func(system, logger=logger, **json.loads(args.services.replace("'", "\"")))
         else:
             measure_func(system, warn=args.warning, crit=args.critical, logger=logger)
     except Exception as e:
