@@ -271,14 +271,14 @@ def check_storage_domain_attached_status(system, **kwargs):
     logger = kwargs["logger"]
     okay, critical, all_items = [], [], []
     storage_domains_service = system.api.system_service().storage_domains_service()
-    all_items = storage_domains_service.list()
+    all_sd = storage_domains_service.list()
     data_centers_service = system.api.system_service().data_centers_service()
     all_dc = data_centers_service.list()
 
     for dc in all_dc:
         dc_service = data_centers_service.data_center_service(dc.id)
         attached_sds_service = dc_service.storage_domains_service()
-        for sd in all_items:
+        for sd in all_sd:
             if sd.type == types.StorageDomainType.IMAGE:
                 # Skipping sd as it is of type IMAGE
                 continue
@@ -384,8 +384,9 @@ def check_hosted_engine_status(system, **kwargs):
         print(msg)
         sys.exit(2)
     elif warning:
-        msg = ("Warning: The following host's hosted-engine score reported below 3400.\n "
-            "Actual scrore of host is {}".format(warning))
+        msg = ("Warning: The following host's hosted-engine score reported below 3400: {}".format(
+            warning
+        ))
         logger.warning(msg)
         print(msg)
         sys.exit(1)
