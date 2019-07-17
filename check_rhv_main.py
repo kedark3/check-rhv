@@ -54,6 +54,7 @@ def main():
         dest="warning",
         help="Warning value. Could be fraction or whole number.",
         type=float,
+        default=0.75,
     )
     parser.add_argument(
         "-c",
@@ -61,6 +62,7 @@ def main():
         dest="critical",
         help="Critical value. Could be fraction or whole number.",
         type=float,
+        default=0.9,
     )
     parser.add_argument(
         "-l",
@@ -81,15 +83,9 @@ def main():
     # set logger
     logger = get_logger(args.local)
 
-    if args.warning is not None and args.critical is not None and \
-            float(args.warning) > float(args.critical):
+    if args.warning > args.critical:
         logger.error("Error: warning value can not be greater than critical value")
-        sys.exit(3)
-    elif (args.warning is None and args.critical is not None) or \
-            (args.warning is not None and args.critical is None):
-        logger.error(
-            "Error: please provide both warning and critical values or use default values."
-            "You provided only {}".format("warning" if args.warning is not None else "critical"))
+        print("Error: warning value cannot be greater than critical value")
         sys.exit(3)
 
     # connect to the system
@@ -99,16 +95,17 @@ def main():
     measure_func = get_measurement(args.measurement)
     if not measure_func:
         logger.error("Error: measurement {} not understood".format(args.measurement))
+        print("Error: measurement {} not understood".format(args.measurement))
         sys.exit(3)
 
     # run the measurement function
     # if warning and critical values are not set, we need to use the default and not pass them
     try:
         logger.info("Calling check %s", measure_func.__name__)
-        if args.warning is None and args.critical is None and args.services is None:
-            measure_func(system, logger=logger)
-        elif args.warning is None and args.critical is None and args.services is not None:
-            measure_func(system, logger=logger, **json.loads(args.services.replace("'", "\"")))
+        if args.services:
+            measure_func(system,
+                         logger=logger,
+                         services=json.loads(args.services.replace("'", "\"")))
         else:
             measure_func(system, warn=args.warning, crit=args.critical, logger=logger)
     except Exception as e:

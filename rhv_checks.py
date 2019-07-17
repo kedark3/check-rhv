@@ -400,16 +400,17 @@ def check_hosted_engine_status(system, **kwargs):
 def check_services_status(system, **kwargs):
     """Check to see if service are in the desired state"""
     logger = kwargs["logger"]
-    kwargs.pop("logger", None)
     hosts = system.api.system_service().hosts_service()
     hosts_agents = dict()
     hosts_status = dict()
+
+    services = kwargs["services"]
 
     for host in hosts.list():
         host_service = hosts.host_service(host.id)
         ssh = ssh_client(host_service, username="root", password=system.api._password)
         with ssh:
-            for service_name, status in kwargs.iteritems():
+            for service_name, status in services.iteritems():
                 service_status = is_service_in_status(ssh, service_name, status)
                 try:
                     hosts_agents[host.name].update({service_name: service_status})
@@ -422,7 +423,7 @@ def check_services_status(system, **kwargs):
 
     # TODO: add the exact desired state in message instead of True/False
     if overall_status:  # all true, everything is running
-        msg = ("Ok: all services {} are in the desired state on all hosts".format(kwargs.keys()))
+        msg = ("Ok: all services {} are in the desired state on all hosts".format(services.keys()))
         logger.info(msg)
         print(msg)
         sys.exit(0)
