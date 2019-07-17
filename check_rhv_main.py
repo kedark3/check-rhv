@@ -84,8 +84,9 @@ def main():
     logger = get_logger(args.local)
 
     if args.warning > args.critical:
-        logger.error("Error: warning value can not be greater than critical value")
-        print("Error: warning value cannot be greater than critical value")
+        msg = "Error: warning value can not be greater than critical value"
+        logger.error(msg)
+        print(msg)
         sys.exit(3)
 
     # connect to the system
@@ -94,8 +95,9 @@ def main():
     # get measurement function
     measure_func = get_measurement(args.measurement)
     if not measure_func:
-        logger.error("Error: measurement {} not understood".format(args.measurement))
-        print("Error: measurement {} not understood".format(args.measurement))
+        msg = "Error: measurement {} not understood".format(args.measurement)
+        logger.error(msg)
+        print(msg)
         sys.exit(3)
 
     # run the measurement function
