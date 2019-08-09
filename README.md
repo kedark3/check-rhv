@@ -1,6 +1,6 @@
 io-shinken-checks-rhv
 ========================
-Checks for Red Hat Virtualization (RHV) using wrapanapi
+Checks for Red Hat Virtualization (RHV) using wrapanapi. Compatible with py3.6 and py3.7
 
 Dependencies
 ============
