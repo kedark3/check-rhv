@@ -410,7 +410,7 @@ def check_services_status(system, **kwargs):
         host_service = hosts.host_service(host.id)
         ssh = ssh_client(host_service, username="root", password=system.api._password)
         with ssh:
-            for service_name, status in services.iteritems():
+            for service_name, status in services.items():
                 service_status = is_service_in_status(ssh, service_name, status)
                 try:
                     hosts_agents[host.name].update({service_name: service_status})
