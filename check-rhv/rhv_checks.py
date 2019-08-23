@@ -14,7 +14,7 @@ from utils import ssh_client
 
 
 def check_vm_count(system, warn=20, crit=30, **kwargs):
-    """ Check overall host status. """
+    """ Check count of VMs. """
     logger = kwargs["logger"]
     warn = int(warn)
     crit = int(crit)
@@ -38,6 +38,36 @@ def check_vm_count(system, warn=20, crit=30, **kwargs):
         sys.exit(2)
     else:
         msg = ("Unknown: VM count is unknown")
+        logger.info(msg)
+        print(msg)
+        sys.exit(3)
+
+
+def check_template_count(system, warn=20, crit=30, **kwargs):
+    """ Check count of templates. """
+    logger = kwargs["logger"]
+    warn = int(warn)
+    crit = int(crit)
+    template_count = len(system.list_templates())
+    # determine ok, warning, critical, unknown state
+    if template_count < warn:
+        msg = ("Ok: Template count is less than {}. Template Count = {}".format(warn, template_count))
+        logger.info(msg)
+        print(msg)
+        sys.exit(0)
+    elif warn <= template_count <= crit:
+        msg = ("Warning: Template count is greater than {} & less than {}. Template Count = {}"
+            .format(warn, crit, template_count))
+        logger.warning(msg)
+        print(msg)
+        sys.exit(1)
+    elif template_count > crit:
+        msg = ("Critical: Template count is greater than {}. Template Count = {}".format(crit, template_count))
+        logger.error(msg)
+        print(msg)
+        sys.exit(2)
+    else:
+        msg = ("Unknown: Template count is unknown")
         logger.info(msg)
         print(msg)
         sys.exit(3)
@@ -222,7 +252,7 @@ def check_hosts_status(system, **kwargs):
 
 
 def check_datacenters_status(system, **kwargs):
-    """ Check the status of all the hosts."""
+    """ Check the status of all the datacenters."""
     logger = kwargs["logger"]
     okay, warning, critical, unknown, all_items = [], [], [], [], []
     datacenters = system.api.system_service().data_centers_service().list()
@@ -267,7 +297,7 @@ def check_datacenters_status(system, **kwargs):
 
 
 def check_storage_domain_attached_status(system, **kwargs):
-    """ Check the usage of all the datastores on the host. """
+    """ Check the usage of all the storage domain attached to the datacenters. """
     logger = kwargs["logger"]
     okay, critical, all_items = [], [], []
     storage_domains_service = system.api.system_service().storage_domains_service()
@@ -438,6 +468,7 @@ def check_services_status(system, **kwargs):
 
 CHECKS = {
     "vm_count": check_vm_count,
+    "template_count": check_template_count,
     "storage_domain_status": check_storage_domain_status,
     "storage_domain_usage": check_storage_domain_usage,
     "locked_disks_count": check_locked_disks,
