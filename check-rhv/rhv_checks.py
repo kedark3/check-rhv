@@ -9,7 +9,7 @@ import sys
 
 from ovirtsdk4 import types
 
-from utils import is_service_in_status
+from utils import get_services_status_list
 from utils import ssh_client
 
 
@@ -438,14 +438,19 @@ def check_services_status(system, **kwargs):
 
     for host in hosts.list():
         host_service = hosts.host_service(host.id)
-        ssh = ssh_client(host_service, username="root", password=system.api._password)
-        with ssh:
-            for service_name, status in services.items():
-                service_status = is_service_in_status(ssh, service_name, status)
-                try:
-                    hosts_agents[host.name].update({service_name: service_status})
-                except KeyError:
-                    hosts_agents[host.name] = {service_name: service_status}
+        with ssh_client(host_service, username="root", password=system.api._password) as ssh:
+            service_status_dict = get_services_status_list(ssh)
+        # checking service name and it's status.
+        for service_name, status in services.items():
+            try:
+                logger.debug("service:{} status: {} expected_status: {}"
+                    .format(service_name, service_status_dict[service_name], expected_status))
+                service_status = (expected_status in service_status_dict[service_name])
+            except KeyError:
+                # This is because not all hosts may have all services installed
+                logger.debug("Service {} not found on host {}".format(service_name, host))
+                continue
+
 
         hosts_status[host.name] = all(hosts_agents[host.name].values())
 
